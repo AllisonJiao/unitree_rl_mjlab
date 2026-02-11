@@ -86,27 +86,27 @@ def run_play(task_id: str, cfg: PlayConfig):
 
     if TRAINED_MODE:
         log_root_path = (Path("logs") / "rsl_rl" / agent_cfg.experiment_name).resolve()
-    if cfg.checkpoint_file is not None:
-        resume_path = Path(cfg.checkpoint_file)
-        if not resume_path.exists():
-            raise FileNotFoundError(f"Checkpoint file not found: {resume_path}")
-        print(f"[INFO]: Loading checkpoint: {resume_path.name}")
-    else:
-        if cfg.wandb_run_path is None:
-            raise ValueError(
-                "`wandb_run_path` is required when `checkpoint_file` is not provided."
+        if cfg.checkpoint_file is not None:
+            resume_path = Path(cfg.checkpoint_file)
+            if not resume_path.exists():
+                raise FileNotFoundError(f"Checkpoint file not found: {resume_path}")
+            print(f"[INFO]: Loading checkpoint: {resume_path.name}")
+        else:
+            if cfg.wandb_run_path is None:
+                raise ValueError(
+                    "`wandb_run_path` is required when `checkpoint_file` is not provided."
+                )
+            resume_path, was_cached = get_wandb_checkpoint_path(
+                log_root_path, Path(cfg.wandb_run_path)
             )
-        resume_path, was_cached = get_wandb_checkpoint_path(
-            log_root_path, Path(cfg.wandb_run_path)
-        )
-        # Extract run_id and checkpoint name from path for display.
-        run_id = resume_path.parent.name
-        checkpoint_name = resume_path.name
-        cached_str = "cached" if was_cached else "downloaded"
-        print(
-            f"[INFO]: Loading checkpoint: {checkpoint_name} (run: {run_id}, {cached_str})"
-        )
-    log_dir = resume_path.parent
+            # Extract run_id and checkpoint name from path for display.
+            run_id = resume_path.parent.name
+            checkpoint_name = resume_path.name
+            cached_str = "cached" if was_cached else "downloaded"
+            print(
+                f"[INFO]: Loading checkpoint: {checkpoint_name} (run: {run_id}, {cached_str})"
+            )
+        log_dir = resume_path.parent
 
     if cfg.num_envs is not None:
         env_cfg.scene.num_envs = cfg.num_envs
@@ -124,14 +124,14 @@ def run_play(task_id: str, cfg: PlayConfig):
 
     if TRAINED_MODE and cfg.video:
         print("[INFO] Recording videos during play")
-    assert log_dir is not None  # log_dir is set in TRAINED_MODE block
-    env = VideoRecorder(
-      env,
-      video_folder=log_dir / "videos" / "play",
-      step_trigger=lambda step: step == 0,
-      video_length=cfg.video_length,
-      disable_logger=True,
-    )
+        assert log_dir is not None  # log_dir is set in TRAINED_MODE block
+        env = VideoRecorder(
+          env,
+          video_folder=log_dir / "videos" / "play",
+          step_trigger=lambda step: step == 0,
+          video_length=cfg.video_length,
+          disable_logger=True,
+        )
 
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
     if DUMMY_MODE:
