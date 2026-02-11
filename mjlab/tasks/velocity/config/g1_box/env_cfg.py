@@ -34,6 +34,10 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     # Replace the scene with our custom scene (box + robot)
     env_cfg.scene = SCENE_CFG
     
+    # Remove curriculum since we're using a simple plane terrain (no terrain generator)
+    # The curriculum requires a terrain generator which we don't have
+    env_cfg.curriculum = {}
+    
     # Update action config to match G1 velocity task
     joint_pos_action = env_cfg.actions["joint_pos"]
     assert isinstance(joint_pos_action, JointPositionActionCfg)
