@@ -9,6 +9,7 @@ import torch
 
 from mjlab.envs import ManagerBasedRlEnv, ManagerBasedRlEnvCfg
 from mjlab.envs.mdp.actions import JointPositionActionCfg
+from mjlab.rl import RslRlVecEnvWrapper
 from mjlab.viewer import NativeMujocoViewer, ViserPlayViewer
 from mjlab.viewer.viewer_config import ViewerConfig
 
@@ -73,6 +74,9 @@ def main():
     print("Creating environment...")
     device = args.device or ("cuda:0" if torch.cuda.is_available() else "cpu")
     env = ManagerBasedRlEnv(cfg=env_cfg, device=device)
+    
+    # Wrap environment to provide get_observations() method for viewer
+    env = RslRlVecEnvWrapper(env, clip_actions=None)
     
     # Create a zero policy (no actions)
     class ZeroPolicy:
