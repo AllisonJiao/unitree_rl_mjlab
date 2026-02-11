@@ -8,6 +8,10 @@ import math
 from mjlab.asset_zoo.robots import G1_ACTION_SCALE
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.envs.mdp.actions import JointPositionActionCfg
+from mjlab.managers.reward_manager import RewardTermCfg
+from mjlab.managers.scene_entity_config import SceneEntityCfg
+from mjlab.sensor import ContactMatch, ContactSensorCfg
+from mjlab.tasks.velocity import mdp
 from mjlab.tasks.velocity.mdp import UniformVelocityCommandCfg
 from mjlab.tasks.velocity.velocity_env_cfg import make_velocity_env_cfg
 from mjlab.viewer.viewer_config import ViewerConfig
@@ -42,6 +46,86 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     joint_pos_action = env_cfg.actions["joint_pos"]
     assert isinstance(joint_pos_action, JointPositionActionCfg)
     joint_pos_action.scale = G1_ACTION_SCALE
+    
+    # Add feet_ground_contact sensor (required for some reward terms)
+    site_names = ("left_foot", "right_foot")
+    feet_ground_cfg = ContactSensorCfg(
+        name="feet_ground_contact",
+        primary=ContactMatch(
+            mode="subtree",
+            pattern=r"^(left_ankle_roll_link|right_ankle_roll_link)$",
+            entity="robot",
+        ),
+        secondary=ContactMatch(mode="body", pattern="terrain"),
+        fields=("found", "force"),
+        reduce="netforce",
+        num_slots=1,
+        track_air_time=True,
+    )
+    
+    # Add feet sensor to scene (scene already has self_collision sensor)
+    existing_sensors = list(env_cfg.scene.sensors)
+    existing_sensors.append(feet_ground_cfg)
+    env_cfg.scene.sensors = tuple(existing_sensors)
+    
+    # Configure reward parameters that require robot-specific settings
+    # These are needed for the reward functions to work properly
+    
+    # Configure pose reward std values (required for variable_posture reward)
+    env_cfg.rewards["pose"].params["std_standing"] = {".*": 0.05}
+    env_cfg.rewards["pose"].params["std_walking"] = {
+        # Lower body.
+        r".*hip_pitch.*": 0.5,
+        r".*hip_roll.*": 0.15,
+        r".*hip_yaw.*": 0.15,
+        r".*knee.*": 0.5,
+        r".*ankle_pitch.*": 0.15,
+        r".*ankle_roll.*": 0.1,
+        # Waist.
+        r".*waist_yaw.*": 0.15,
+        r".*waist_roll.*": 0.1,
+        r".*waist_pitch.*": 0.1,
+        # Arms.
+        r".*shoulder_pitch.*": 0.15,
+        r".*shoulder_roll.*": 0.1,
+        r".*shoulder_yaw.*": 0.1,
+        r".*elbow.*": 0.1,
+        r".*wrist.*": 0.1,
+    }
+    env_cfg.rewards["pose"].params["std_running"] = {
+        # Lower body.
+        r".*hip_pitch.*": 0.5,
+        r".*hip_roll.*": 0.25,
+        r".*hip_yaw.*": 0.25,
+        r".*knee.*": 0.5,
+        r".*ankle_pitch.*": 0.25,
+        r".*ankle_roll.*": 0.1,
+        # Waist.
+        r".*waist_yaw.*": 0.25,
+        r".*waist_roll.*": 0.1,
+        r".*waist_pitch.*": 0.1,
+        # Arms.
+        r".*shoulder_pitch.*": 0.25,
+        r".*shoulder_roll.*": 0.1,
+        r".*shoulder_yaw.*": 0.1,
+        r".*elbow.*": 0.1,
+        r".*wrist.*": 0.1,
+    }
+    
+    # Configure other reward parameters
+    env_cfg.rewards["body_ang_vel"].params["asset_cfg"].body_names = ("torso_link",)
+    env_cfg.rewards["foot_clearance"].params["asset_cfg"].site_names = site_names
+    env_cfg.rewards["foot_slip"].params["asset_cfg"].site_names = site_names
+    
+    # Add self_collisions reward (uses the self_collision sensor from scene_cfg)
+    env_cfg.rewards["self_collisions"] = RewardTermCfg(
+        func=mdp.self_collision_cost,
+        weight=-1.0,
+        params={"sensor_name": "self_collision"},
+    )
+    
+    # Configure event parameters
+    env_cfg.events["base_com"].params["asset_cfg"].body_names = ("torso_link",)
     
     # Configure viewer to track the robot
     env_cfg.viewer = ViewerConfig(
