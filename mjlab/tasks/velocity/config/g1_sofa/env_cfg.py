@@ -1,4 +1,4 @@
-"""Environment configuration for viewing the scene with box and unitree_g1.
+"""Environment configuration for viewing the scene with sofa and unitree_g1.
 
 Supports both zero/random agents and trained checkpoints from G1 velocity tasks.
 """
@@ -35,7 +35,7 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     # Start with base velocity env config to get observations and commands
     env_cfg = make_velocity_env_cfg()
     
-    # Replace the scene with our custom scene (box + robot)
+    # Replace the scene with our custom scene (sofa + robot)
     env_cfg.scene = SCENE_CFG
     
     # Remove curriculum since we're using a simple plane terrain (no terrain generator)

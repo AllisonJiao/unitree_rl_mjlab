@@ -5,7 +5,7 @@ from .rl_cfg import scene_view_ppo_runner_cfg
 
 # Register scene viewing task
 register_mjlab_task(
-  task_id="Mjlab-Scene-View-Box-G1",
+  task_id="Mjlab-Scene-View-Sofa-G1",
   env_cfg=scene_view_env_cfg(play=False),
   play_env_cfg=scene_view_env_cfg(play=True),
   rl_cfg=scene_view_ppo_runner_cfg(),
