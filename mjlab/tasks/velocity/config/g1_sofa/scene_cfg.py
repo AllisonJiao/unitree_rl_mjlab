@@ -44,6 +44,10 @@ def create_scene_cfg() -> SceneCfg:
     
     robot2_cfg = get_g1_robot_cfg()
     robot2_cfg.init_state.pos = (1.0, 0.0, 0.0)  # Position robot2 to the right
+    # Remove actuators from robot2 so it doesn't interfere with observations/actions
+    # This makes robot2 passive (no control, just physics)
+    if robot2_cfg.articulation is not None:
+        robot2_cfg.articulation.actuators = tuple()
     
     # Configure contact sensors for the primary "robot" entity
     # (The env_cfg expects "robot" as the entity name)
@@ -73,11 +77,13 @@ def create_scene_cfg() -> SceneCfg:
     )
     
     # Create scene configuration with two robots and sofa
+    # Note: Temporarily comment out robot2 to debug CUDA error
+    # Uncomment robot2 once the issue is resolved
     scene_cfg = SceneCfg(
         terrain=TerrainImporterCfg(terrain_type="plane"),
         entities={
             "robot": robot_cfg,
-            "robot2": robot2_cfg,
+            # "robot2": robot2_cfg,  # Temporarily disabled to debug CUDA error
         },
         sensors=(self_collision_sensor, feet_ground_cfg),
         # Use spec_fn to add the sofa asset
