@@ -17,11 +17,10 @@ def create_scene_cfg() -> SceneCfg:
     """
     # --- Sofa entity ---
     sofa_cfg = get_sofa_cfg()
-    sofa_cfg.init_state.pos = (2.0, 0.0, 0.0)  # Position sofa to the right
+    sofa_cfg.init_state.pos = (2.0, 0.0, 0.0)  
     
     # --- Primary robot (controlled) ---
     robot_cfg = get_g1_robot_cfg()
-    # Preserve the z-coordinate from HOME_KEYFRAME (0.78) to keep robot above ground
     robot_cfg.init_state.pos = (-1.0, 0.0, 0.78)
     
     # --- Secondary robot (passive) ---

@@ -15,9 +15,9 @@ def scene_view_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
     return RslRlOnPolicyRunnerCfg(
         policy=RslRlPpoActorCriticCfg(
             init_noise_std=1.0,
-            actor_obs_normalization=False,  # No observations needed for viewing
+            actor_obs_normalization=False, 
             critic_obs_normalization=False,
-            actor_hidden_dims=(64, 32),  # Minimal network
+            actor_hidden_dims=(64, 32),  
             critic_hidden_dims=(64, 32),
             activation="elu",
         ),
@@ -26,7 +26,7 @@ def scene_view_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
             use_clipped_value_loss=True,
             clip_param=0.2,
             entropy_coef=0.01,
-            num_learning_epochs=1,  # Minimal since not training
+            num_learning_epochs=1,
             num_mini_batches=1,
             learning_rate=1.0e-3,
             schedule="adaptive",
@@ -36,8 +36,8 @@ def scene_view_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
             max_grad_norm=1.0,
         ),
         experiment_name="unitree_g1_sofa",
-        save_interval=1000,  # Not really used for viewing
+        save_interval=1000,  
         num_steps_per_env=24,
-        max_iterations=100,  # Minimal
+        max_iterations=100, 
     )
 

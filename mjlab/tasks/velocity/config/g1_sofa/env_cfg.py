@@ -22,38 +22,24 @@ from .scene_cfg import SCENE_CFG
 
 def unitree_g1_sofa_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     """Create environment configuration for Unitree G1 sofa task."""
-    
-    # Start with base velocity env config to get observations and commands
     env_cfg = make_velocity_env_cfg()
     
-    # Replace the scene with our custom scene (sofa + robot)
     env_cfg.scene = SCENE_CFG
     
-    # Remove curriculum since we're using a simple plane terrain (no terrain generator)
-    # The curriculum requires a terrain generator which we don't have
     env_cfg.curriculum = {}
     
     # Increase nconmax and njmax to handle more contacts/constraints (two robots + sofa)
-    # Default nconmax is 35, but we need at least 240 for this scene
-    # Default njmax is 300, but we need at least 744 for this scene
     env_cfg.sim.nconmax = 300
-    env_cfg.sim.njmax = 800  # Set to 800 to provide some headroom above the required 744
+    env_cfg.sim.njmax = 800
     
-    # Update action config to match G1 velocity task
     joint_pos_action = env_cfg.actions["joint_pos"]
     assert isinstance(joint_pos_action, JointPositionActionCfg)
     joint_pos_action.scale = G1_ACTION_SCALE
     
-    # Note: feet_ground_contact sensor is already in SCENE_CFG, so we don't need to add it here
     site_names = ("left_foot", "right_foot")
 
-    # Configure event parameters
     env_cfg.events["base_com"].params["asset_cfg"].body_names = ("torso_link",)
     
-    # Configure reward parameters that require robot-specific settings
-    # These are needed for the reward functions to work properly
-    
-    # Configure pose reward std values (required for variable_posture reward)
     env_cfg.rewards["pose"].params["std_standing"] = {".*": 0.05}
     env_cfg.rewards["pose"].params["std_walking"] = {
         # Lower body.
@@ -93,20 +79,15 @@ def unitree_g1_sofa_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         r".*elbow.*": 0.1,
         r".*wrist.*": 0.1,
     }
-    
-    # Configure other reward parameters
     env_cfg.rewards["body_ang_vel"].params["asset_cfg"].body_names = ("torso_link",)
     env_cfg.rewards["foot_clearance"].params["asset_cfg"].site_names = site_names
     env_cfg.rewards["foot_slip"].params["asset_cfg"].site_names = site_names
-    
-    # Add self_collisions reward (uses the self_collision sensor from scene_cfg)
     env_cfg.rewards["self_collisions"] = RewardTermCfg(
         func=mdp.self_collision_cost,
         weight=-1.0,
         params={"sensor_name": "self_collision"},
     )
     
-    # Configure viewer to track the robot
     env_cfg.viewer = ViewerConfig(
         origin_type=ViewerConfig.OriginType.ASSET_BODY,
         entity_name="robot",
@@ -116,12 +97,9 @@ def unitree_g1_sofa_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         azimuth=45.0,
     )
     
-    # Update episode length
     env_cfg.episode_length_s = 60.0
     
-    # For play mode, you might want to adjust command settings
     if play:
-        # Make commands less aggressive for viewing
         twist_cmd = env_cfg.commands["twist"]
         assert isinstance(twist_cmd, UniformVelocityCommandCfg)
         twist_cmd.ranges.lin_vel_x = (-0.3, 0.8)  # Slower forward speed
