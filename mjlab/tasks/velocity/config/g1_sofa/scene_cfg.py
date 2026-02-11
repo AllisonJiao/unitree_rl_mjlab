@@ -39,14 +39,22 @@ def create_scene_cfg() -> SceneCfg:
     
     # Get G1 robot config for both robots
     # Use "robot" as primary (for compatibility with env_cfg) and "robot2" as secondary
+    # Create a fresh copy to avoid any mutation issues
+    from copy import deepcopy
+    
     robot_cfg = get_g1_robot_cfg()
+    # Create a new InitialStateCfg with updated position to avoid mutating the original
+    robot_cfg.init_state = deepcopy(robot_cfg.init_state)
     robot_cfg.init_state.pos = (-1.0, 0.0, 0.0)  # Position robot to the left
     
     robot2_cfg = get_g1_robot_cfg()
+    # Create a new InitialStateCfg with updated position
+    robot2_cfg.init_state = deepcopy(robot2_cfg.init_state)
     robot2_cfg.init_state.pos = (1.0, 0.0, 0.0)  # Position robot2 to the right
     # Remove actuators from robot2 so it doesn't interfere with observations/actions
     # This makes robot2 passive (no control, just physics)
     if robot2_cfg.articulation is not None:
+        robot2_cfg.articulation = deepcopy(robot2_cfg.articulation)
         robot2_cfg.articulation.actuators = tuple()
     
     # Configure contact sensors for the primary "robot" entity
