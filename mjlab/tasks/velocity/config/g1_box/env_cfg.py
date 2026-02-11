@@ -47,26 +47,8 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     assert isinstance(joint_pos_action, JointPositionActionCfg)
     joint_pos_action.scale = G1_ACTION_SCALE
     
-    # Add feet_ground_contact sensor (required for some reward terms)
+    # Note: feet_ground_contact sensor is already in SCENE_CFG, so we don't need to add it here
     site_names = ("left_foot", "right_foot")
-    feet_ground_cfg = ContactSensorCfg(
-        name="feet_ground_contact",
-        primary=ContactMatch(
-            mode="subtree",
-            pattern=r"^(left_ankle_roll_link|right_ankle_roll_link)$",
-            entity="robot",
-        ),
-        secondary=ContactMatch(mode="body", pattern="terrain"),
-        fields=("found", "force"),
-        reduce="netforce",
-        num_slots=1,
-        track_air_time=True,
-    )
-    
-    # Add feet sensor to scene (scene already has self_collision sensor)
-    existing_sensors = list(env_cfg.scene.sensors)
-    existing_sensors.append(feet_ground_cfg)
-    env_cfg.scene.sensors = tuple(existing_sensors)
     
     # Configure reward parameters that require robot-specific settings
     # These are needed for the reward functions to work properly
