@@ -60,8 +60,8 @@ def main():
     parser.add_argument(
         "--device",
         type=str,
-        default="cpu",
-        help="Device to use (default: cpu)",
+        default=None,
+        help="Device to use (default: auto-detect - cuda:0 if available, else cpu)",
     )
     
     args = parser.parse_args()
@@ -72,7 +72,16 @@ def main():
     
     # Create environment
     print("Creating environment...")
-    device = args.device or ("cuda:0" if torch.cuda.is_available() else "cpu")
+    # Default to GPU if available, otherwise CPU
+    if args.device is None:
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    else:
+        device = args.device
+    
+    if torch.cuda.is_available() and device.startswith("cuda"):
+        print(f"Using GPU: {device}")
+    else:
+        print(f"Using CPU: {device}")
     env = ManagerBasedRlEnv(cfg=env_cfg, device=device)
     
     # Wrap environment to provide get_observations() method for viewer
