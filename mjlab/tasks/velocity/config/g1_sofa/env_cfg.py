@@ -20,19 +20,9 @@ from mjlab.viewer.viewer_config import ViewerConfig
 from .scene_cfg import SCENE_CFG
 
 
-def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
-    """Create environment configuration for viewing the scene.
+def unitree_g1_sofa_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
+    """Create environment configuration for Unitree G1 sofa task."""
     
-    This config supports:
-    - Zero/random agents (for simple viewing)
-    - Trained checkpoints from G1 velocity tasks (includes observations and commands)
-    
-    Args:
-        play: If True, configure for play mode (e.g., better viewer settings)
-    
-    Returns:
-        ManagerBasedRlEnvCfg with the scene setup
-    """
     # Start with base velocity env config to get observations and commands
     env_cfg = make_velocity_env_cfg()
     
@@ -56,6 +46,9 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     
     # Note: feet_ground_contact sensor is already in SCENE_CFG, so we don't need to add it here
     site_names = ("left_foot", "right_foot")
+
+    # Configure event parameters
+    env_cfg.events["base_com"].params["asset_cfg"].body_names = ("torso_link",)
     
     # Configure reward parameters that require robot-specific settings
     # These are needed for the reward functions to work properly
@@ -112,9 +105,6 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         weight=-1.0,
         params={"sensor_name": "self_collision"},
     )
-    
-    # Configure event parameters
-    env_cfg.events["base_com"].params["asset_cfg"].body_names = ("torso_link",)
     
     # Configure viewer to track the robot
     env_cfg.viewer = ViewerConfig(

@@ -35,7 +35,7 @@ def scene_view_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
             desired_kl=0.01,
             max_grad_norm=1.0,
         ),
-        experiment_name="scene_view",
+        experiment_name="unitree_g1_sofa",
         save_interval=1000,  # Not really used for viewing
         num_steps_per_env=24,
         max_iterations=100,  # Minimal

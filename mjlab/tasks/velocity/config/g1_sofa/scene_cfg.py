@@ -32,16 +32,7 @@ def create_scene_cfg() -> SceneCfg:
         robot2_cfg.articulation = deepcopy(robot2_cfg.articulation)
         robot2_cfg.articulation.actuators = tuple()
     
-    # --- Contact sensors (primary "robot" entity only) ---
-    self_collision_sensor = ContactSensorCfg(
-        name="self_collision",
-        primary=ContactMatch(mode="subtree", pattern="pelvis", entity="robot"),
-        secondary=ContactMatch(mode="subtree", pattern="pelvis", entity="robot"),
-        fields=("found",),
-        reduce="none",
-        num_slots=1,
-    )
-    
+    # --- Contact sensors (primary "robot" entity only) ---   
     feet_ground_cfg = ContactSensorCfg(
         name="feet_ground_contact",
         primary=ContactMatch(
@@ -54,6 +45,15 @@ def create_scene_cfg() -> SceneCfg:
         reduce="netforce",
         num_slots=1,
         track_air_time=True,
+    )
+
+    self_collision_sensor = ContactSensorCfg(
+        name="self_collision",
+        primary=ContactMatch(mode="subtree", pattern="pelvis", entity="robot"),
+        secondary=ContactMatch(mode="subtree", pattern="pelvis", entity="robot"),
+        fields=("found",),
+        reduce="none",
+        num_slots=1,
     )
     
     # --- Scene ---
