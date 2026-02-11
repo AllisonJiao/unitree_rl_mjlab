@@ -1,4 +1,11 @@
-"""Unitree G1 scene configuration."""
+"""Unitree G1 scene configuration.
+
+To view this scene, run:
+    python -m mjlab.tasks.velocity.config.g1.view_scene
+
+Or from the config directory:
+    python view_scene.py
+"""
 
 from mjlab.scene import SceneCfg
 from mjlab.asset_zoo.robots.unitree_g1.g1_constants import get_g1_robot_cfg
