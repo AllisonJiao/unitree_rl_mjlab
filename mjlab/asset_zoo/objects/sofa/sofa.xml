@@ -1,0 +1,27 @@
+<mujoco model="sofa">
+  <compiler angle="radian" coordinate="local"/>
+  <option gravity="0 0 -9.81"/>
+  
+  <asset>
+    <!-- Load the sofa STL mesh -->
+    <mesh name="sofa_mesh" file="sofa.stl"/>
+    <!-- Material for the sofa -->
+    <material name="sofa_material" rgba="0.5 0.3 0.2 1"/>
+  </asset>
+  
+  <worldbody>
+    <!-- Sofa body - fixed base (no freejoint, so it's static) -->
+    <body name="sofa" pos="0 0 0">
+      <!-- Visual geometry using the mesh -->
+      <geom name="sofa_geom"
+            type="mesh"
+            mesh="sofa_mesh"
+            material="sofa_material"
+            contype="1"
+            conaffinity="1"
+            mass="50.0"
+            density="100"/>
+    </body>
+  </worldbody>
+</mujoco>
+
