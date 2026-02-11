@@ -42,10 +42,12 @@ def create_scene_cfg() -> SceneCfg:
     from copy import deepcopy
     
     robot_cfg = get_g1_robot_cfg()
-    robot_cfg.init_state.pos = (-1.0, 0.0, 0.0)  # Position robot to the left
+    # Preserve the z-coordinate from HOME_KEYFRAME (0.78) to keep robot above ground
+    robot_cfg.init_state.pos = (-1.0, 0.0, 0.78)  # Position robot to the left, at proper height
     
     robot2_cfg = get_g1_robot_cfg()
-    robot2_cfg.init_state.pos = (1.0, 0.0, 0.0)  # Position robot2 to the right
+    # Preserve the z-coordinate from HOME_KEYFRAME (0.78) to keep robot above ground
+    robot2_cfg.init_state.pos = (1.0, 0.0, 0.78)  # Position robot2 to the right, at proper height
     # Remove actuators from robot2 so it doesn't interfere with observations/actions
     # This makes robot2 passive (no control, just physics)
     # IMPORTANT: Deep copy the articulation before modifying to avoid mutating the shared G1_ARTICULATION
@@ -81,13 +83,11 @@ def create_scene_cfg() -> SceneCfg:
     )
     
     # Create scene configuration with two robots and sofa
-    # Note: Temporarily comment out robot2 to debug CUDA error
-    # Uncomment robot2 once the issue is resolved
     scene_cfg = SceneCfg(
         terrain=TerrainImporterCfg(terrain_type="plane"),
         entities={
             "robot": robot_cfg,
-            # "robot2": robot2_cfg,  # Temporarily disabled to debug CUDA error
+            "robot2": robot2_cfg,  # Second robot (passive, no actuators)
         },
         sensors=(self_collision_sensor, feet_ground_cfg),
         # Use spec_fn to add the sofa asset
