@@ -43,9 +43,11 @@ def scene_view_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     # The curriculum requires a terrain generator which we don't have
     env_cfg.curriculum = {}
     
-    # Increase nconmax to handle more contacts (two robots + sofa)
-    # Default is 35, but we need at least 240 for this scene
+    # Increase nconmax and njmax to handle more contacts/constraints (two robots + sofa)
+    # Default nconmax is 35, but we need at least 240 for this scene
+    # Default njmax is 300, but we need at least 744 for this scene
     env_cfg.sim.nconmax = 300
+    env_cfg.sim.njmax = 800  # Set to 800 to provide some headroom above the required 744
     
     # Update action config to match G1 velocity task
     joint_pos_action = env_cfg.actions["joint_pos"]
