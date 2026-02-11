@@ -1,8 +1,8 @@
 """Unitree G1 scene configuration with sofa asset and two robots."""
 
-import mujoco
+from copy import deepcopy
 
-from mjlab import MJLAB_SRC_PATH
+from mjlab.asset_zoo.objects.sofa.sofa_constants import get_sofa_cfg
 from mjlab.asset_zoo.robots import get_g1_robot_cfg
 from mjlab.scene import SceneCfg
 from mjlab.sensor import ContactMatch, ContactSensorCfg
@@ -15,48 +15,24 @@ def create_scene_cfg() -> SceneCfg:
     Returns:
         SceneCfg instance with sofa and two robots
     """
-    # Path to the sofa XML file
-    sofa_xml_path = MJLAB_SRC_PATH / "asset_zoo" / "objects" / "sofa" / "sofa.xml"
+    # --- Sofa entity ---
+    sofa_cfg = get_sofa_cfg()
+    sofa_cfg.init_state.pos = (2.0, 0.0, 0.0)  # Position sofa to the right
     
-    def add_sofa_asset(spec: mujoco.MjSpec) -> None:
-        """Add the sofa XML asset to the scene using spec_fn.
-        
-        This is called AFTER sensors are added, so we need to be careful
-        not to cause conflicts.
-        """
-        # Load the sofa XML as a separate spec
-        sofa_spec = mujoco.MjSpec.from_file(str(sofa_xml_path))
-        
-        # Clear any sensors from sofa_spec to avoid conflicts
-        for sensor in list(sofa_spec.sensors):
-            sofa_spec.delete(sensor)
-        
-        # Attach the sofa spec to the scene's worldbody
-        frame = spec.worldbody.add_frame()
-        # Position the sofa 2 meters to the right
-        frame.pos = [2.0, 0.0, 0.0]
-        spec.attach(sofa_spec, prefix="sofa/", frame=frame)
-    
-    # Get G1 robot config for both robots
-    # Use "robot" as primary (for compatibility with env_cfg) and "robot2" as secondary
-    from copy import deepcopy
-    
+    # --- Primary robot (controlled) ---
     robot_cfg = get_g1_robot_cfg()
     # Preserve the z-coordinate from HOME_KEYFRAME (0.78) to keep robot above ground
-    robot_cfg.init_state.pos = (-1.0, 0.0, 0.78)  # Position robot to the left, at proper height
+    robot_cfg.init_state.pos = (-1.0, 0.0, 0.78)
     
+    # --- Secondary robot (passive) ---
     robot2_cfg = get_g1_robot_cfg()
-    # Preserve the z-coordinate from HOME_KEYFRAME (0.78) to keep robot above ground
-    robot2_cfg.init_state.pos = (1.0, 0.0, 0.78)  # Position robot2 to the right, at proper height
-    # Remove actuators from robot2 so it doesn't interfere with observations/actions
-    # This makes robot2 passive (no control, just physics)
-    # IMPORTANT: Deep copy the articulation before modifying to avoid mutating the shared G1_ARTICULATION
+    robot2_cfg.init_state.pos = (1.0, 0.0, 0.78)
+    # Deep copy articulation before clearing actuators to avoid mutating the shared G1_ARTICULATION
     if robot2_cfg.articulation is not None:
         robot2_cfg.articulation = deepcopy(robot2_cfg.articulation)
         robot2_cfg.articulation.actuators = tuple()
     
-    # Configure contact sensors for the primary "robot" entity
-    # (The env_cfg expects "robot" as the entity name)
+    # --- Contact sensors (primary "robot" entity only) ---
     self_collision_sensor = ContactSensorCfg(
         name="self_collision",
         primary=ContactMatch(mode="subtree", pattern="pelvis", entity="robot"),
@@ -66,8 +42,6 @@ def create_scene_cfg() -> SceneCfg:
         num_slots=1,
     )
     
-    # Add feet_ground_contact sensor (required for reward terms)
-    # Configured for the primary "robot" entity
     feet_ground_cfg = ContactSensorCfg(
         name="feet_ground_contact",
         primary=ContactMatch(
@@ -82,16 +56,15 @@ def create_scene_cfg() -> SceneCfg:
         track_air_time=True,
     )
     
-    # Create scene configuration with two robots and sofa
+    # --- Scene ---
     scene_cfg = SceneCfg(
         terrain=TerrainImporterCfg(terrain_type="plane"),
         entities={
             "robot": robot_cfg,
-            "robot2": robot2_cfg,  # Second robot (passive, no actuators)
+            "robot2": robot2_cfg,
+            "sofa": sofa_cfg,
         },
         sensors=(self_collision_sensor, feet_ground_cfg),
-        # Use spec_fn to add the sofa asset
-        spec_fn=add_sofa_asset,
     )
     
     return scene_cfg

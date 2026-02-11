@@ -1,5 +1,5 @@
 <mujoco model="sofa">
-  <compiler angle="radian" coordinate="local"/>
+  <compiler angle="radian" coordinate="local" meshdir="asset"/>
   <option gravity="0 0 -9.81"/>
   
   <asset>
