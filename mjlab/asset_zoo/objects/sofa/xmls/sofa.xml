@@ -23,5 +23,9 @@
             density="100"/>
     </body>
   </worldbody>
+
+  <keyframe>
+    <key name="default"/>
+  </keyframe>
 </mujoco>
 

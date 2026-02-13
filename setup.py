@@ -10,6 +10,8 @@ INSTALL_REQUIRES = [
     "torch>=2.7.0",
     "torchrunx>=0.3.4",
     "warp-lang>=1.11.0.dev20251211",
+    # mujoco-warp: use >=3.5.0 or install from git main if you see flexedge_J AttributeError
+    # (MuJoCo moved flexedge from MjData to MjModel; fix in mujoco_warp PR #1015)
     "mujoco-warp",
     "mujoco>=3.4.0",
     "trimesh>=4.8.3",
